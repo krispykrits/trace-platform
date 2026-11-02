@@ -1,0 +1,42 @@
+name: Deploy TRACE
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: Reviewed ACR image reference including sha256 digest
+        required: true
+        type: string
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  deploy:
+    environment: development
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - uses: azure/use-kubelogin@v1.2
+        with:
+          kubelogin-version: v0.2.12
+      - uses: azure/aks-set-context@v5
+        with:
+          resource-group: ${{ vars.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ vars.AKS_NAME }}
+          admin: 'false'
+          use-kubelogin: 'true'
+      - name: Verify prerequisites and deploy reviewed digest
+        env:
+          TRACE_IMAGE: ${{ inputs.image }}
+          TRACE_WORKER_CLIENT_ID: ${{ vars.TRACE_WORKER_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          kubectl get secret trace-runtime -n trace >/dev/null
+          kubectl get pvc trace-source -n trace >/dev/null
+          ./scripts/render.sh | kubectl apply -f -
+          kubectl rollout status deployment/trace-api -n trace --timeout=5m
+          kubectl rollout status deployment/trace-worker -n trace --timeout=5m
