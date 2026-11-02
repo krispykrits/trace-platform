@@ -32,7 +32,7 @@ resource "azurerm_federated_identity_credential" "github" {
   user_assigned_identity_id = azurerm_user_assigned_identity.publisher.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:krispykrits/TRACE:environment:development"
+  subject                   = "repo:krispykrits/TRACE:ref:refs/heads/main"
 }
 
 resource "azurerm_role_assignment" "acr_push" {
