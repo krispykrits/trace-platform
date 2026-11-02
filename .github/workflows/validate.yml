@@ -1,0 +1,17 @@
+name: Validate platform configuration
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.17.0
+      - run: terraform fmt -check -recursive azure
+      - run: bash -n scripts/aks.sh scripts/render.sh
