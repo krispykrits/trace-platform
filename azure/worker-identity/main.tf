@@ -29,12 +29,11 @@ resource "azurerm_user_assigned_identity" "worker" {
 }
 
 resource "azurerm_federated_identity_credential" "worker" {
-  name                = "trace-worker"
-  resource_group_name = var.resource_group_name
-  parent_id           = azurerm_user_assigned_identity.worker.id
-  audience            = ["api://AzureADTokenExchange"]
-  issuer              = var.aks_oidc_issuer
-  subject             = "system:serviceaccount:trace:trace-worker"
+  name                      = "trace-worker"
+  user_assigned_identity_id = azurerm_user_assigned_identity.worker.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = var.aks_oidc_issuer
+  subject                   = "system:serviceaccount:trace:trace-worker"
 }
 
 resource "azurerm_role_assignment" "foundry_inference" {
