@@ -32,7 +32,7 @@ resource "azurerm_federated_identity_credential" "github" {
   user_assigned_identity_id = azurerm_user_assigned_identity.deployer.id
   audience                  = ["api://AzureADTokenExchange"]
   issuer                    = "https://token.actions.githubusercontent.com"
-  subject                   = "repo:krispykrits/trace-platform:environment:development"
+  subject                   = "repo:krispykrits@64175002/trace-platform@1441483907:environment:development"
 }
 
 resource "azurerm_role_assignment" "cluster_user" {
