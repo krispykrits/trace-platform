@@ -36,6 +36,20 @@ resource "azurerm_federated_identity_credential" "worker" {
   subject                   = "system:serviceaccount:trace:trace-worker"
 }
 
+resource "azurerm_user_assigned_identity" "api" {
+  name                = "id-trace-api-dev-wus3"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+}
+
+resource "azurerm_federated_identity_credential" "api" {
+  name                      = "trace-api"
+  user_assigned_identity_id = azurerm_user_assigned_identity.api.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = var.aks_oidc_issuer
+  subject                   = "system:serviceaccount:trace:trace-api"
+}
+
 resource "azurerm_role_assignment" "foundry_inference" {
   scope                = var.foundry_resource_id
   role_definition_name = "Cognitive Services OpenAI User"
@@ -44,4 +58,8 @@ resource "azurerm_role_assignment" "foundry_inference" {
 
 output "worker_client_id" {
   value = azurerm_user_assigned_identity.worker.client_id
+}
+
+output "api_client_id" {
+  value = azurerm_user_assigned_identity.api.client_id
 }

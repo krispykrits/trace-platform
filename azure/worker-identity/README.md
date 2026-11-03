@@ -1,5 +1,5 @@
-# TRACE worker identity
+# TRACE workload identities
 
-This Terraform configuration creates a user-assigned identity, federates it to the `trace/trace-worker` Kubernetes service account, and grants it `Cognitive Services OpenAI User` on the selected Foundry resource. It does not change the cluster or start the worker.
+This configuration creates separate API and worker identities federated to their Kubernetes service accounts. Only the worker receives the Foundry inference role. PostgreSQL Entra roles and database permissions must be configured separately.
 
-Use the existing Azure Blob backend with a separate state key. Set the four input variables to the resource group, location, AKS OIDC issuer, and Foundry resource ID, then run `terraform init`, `terraform validate`, and `terraform plan`. Review the exact plan before applying it. The `worker_client_id` output supplies the Kubernetes service-account annotation.
+Use the existing worker identity backend state and review the Terraform plan before applying. The `api_client_id` and `worker_client_id` outputs configure the corresponding Kubernetes service accounts.
