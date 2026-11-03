@@ -1,9 +1,16 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  name: trace-api
+  annotations:
+    azure.workload.identity/client-id: REPLACE_WITH_API_IDENTITY_CLIENT_ID
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
   name: trace-worker
   annotations:
-    azure.workload.identity/client-id: REPLACE_WITH_MANAGED_IDENTITY_CLIENT_ID
+    azure.workload.identity/client-id: REPLACE_WITH_WORKER_IDENTITY_CLIENT_ID
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -18,8 +25,9 @@ spec:
     metadata:
       labels:
         app: trace-api
+        azure.workload.identity/use: "true"
     spec:
-      automountServiceAccountToken: false
+      serviceAccountName: trace-api
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
@@ -37,12 +45,14 @@ spec:
             - secretRef:
                 name: trace-runtime
           env:
-            - name: TRACE_SOURCE_PROFILE
-              value: /var/lib/trace/profile.json
+            - name: TRACE_POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: trace-runtime
+                  key: API_POSTGRES_DSN
+            - name: TRACE_POSTGRES_AUTH
+              value: entra
           volumeMounts:
-            - name: source
-              mountPath: /var/lib/trace
-              readOnly: true
             - name: tmp
               mountPath: /tmp
           readinessProbe:
@@ -68,10 +78,6 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: source
-          persistentVolumeClaim:
-            claimName: trace-source
-            readOnly: true
 ---
 apiVersion: v1
 kind: Service
@@ -117,16 +123,16 @@ spec:
             - secretRef:
                 name: trace-runtime
           env:
-            - name: TRACE_SOURCE_PROFILE
-              value: /var/lib/trace/profile.json
-            - name: TRACE_AZURE_SETUP
-              value: /var/lib/trace/azure.env
+            - name: TRACE_POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: trace-runtime
+                  key: WORKER_POSTGRES_DSN
+            - name: TRACE_POSTGRES_AUTH
+              value: entra
             - name: TRACE_WORKER_MODE
               value: azure
           volumeMounts:
-            - name: source
-              mountPath: /var/lib/trace
-              readOnly: true
             - name: tmp
               mountPath: /tmp
           resources:
@@ -144,7 +150,3 @@ spec:
       volumes:
         - name: tmp
           emptyDir: {}
-        - name: source
-          persistentVolumeClaim:
-            claimName: trace-source
-            readOnly: true

@@ -33,10 +33,10 @@ jobs:
         env:
           TRACE_IMAGE: ${{ inputs.image }}
           TRACE_WORKER_CLIENT_ID: ${{ vars.TRACE_WORKER_CLIENT_ID }}
+          TRACE_API_CLIENT_ID: ${{ vars.TRACE_API_CLIENT_ID }}
         run: |
           set -euo pipefail
           kubectl get secret trace-runtime -n trace >/dev/null
-          kubectl get pvc trace-source -n trace >/dev/null
           ./scripts/render.sh | kubectl apply -f -
           kubectl rollout status deployment/trace-api -n trace --timeout=5m
           kubectl rollout status deployment/trace-worker -n trace --timeout=5m
