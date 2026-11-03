@@ -52,6 +52,8 @@ spec:
                   key: API_POSTGRES_DSN
             - name: TRACE_POSTGRES_AUTH
               value: entra
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
           volumeMounts:
             - name: tmp
               mountPath: /tmp
@@ -130,6 +132,8 @@ spec:
                   key: WORKER_POSTGRES_DSN
             - name: TRACE_POSTGRES_AUTH
               value: entra
+            - name: SSL_CERT_FILE
+              value: /etc/ssl/certs/ca-certificates.crt
             - name: TRACE_WORKER_MODE
               value: azure
           volumeMounts:
